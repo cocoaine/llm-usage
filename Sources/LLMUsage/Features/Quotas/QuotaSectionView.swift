@@ -40,7 +40,7 @@ struct QuotaSectionView: View {
         .font(.system(size: 12))
         if valid {
             ProgressView(value: window.remainingPercent, total: 100)
-                .tint(window.remainingPercent <= 15 ? .orange : .accentColor)
+                .tint(window.remainingPercent <= 15 ? .orange : .blue)
                 .accessibilityLabel("\(provider.rawValue) \(window.label)")
                 .accessibilityValue("\(Int(window.remainingPercent))퍼센트 남음")
         }

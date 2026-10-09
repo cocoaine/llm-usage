@@ -4,12 +4,15 @@ import SwiftUI
 import UsageCore
 
 @MainActor
-final class StatusBarController: NSObject, NSApplicationDelegate {
+final class StatusBarController: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     private let model = AppModel()
     private let popover = NSPopover()
     private var statusItem: NSStatusItem?
     private var contentController: PopoverContentController<UsagePanel>?
     private var subscriptions = Set<AnyCancellable>()
+    private var localMouseMonitor: Any?
+    private var globalMouseMonitor: Any?
+    private var isClosingPopover = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         configureStatusItem()
@@ -35,8 +38,9 @@ final class StatusBarController: NSObject, NSApplicationDelegate {
     @objc private func togglePopover(_ sender: Any?) {
         guard let button = statusItem?.button else { return }
         popover.animates = !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        guard !isClosingPopover else { return }
         if popover.isShown {
-            popover.performClose(sender)
+            closePopoverForOutsideClick()
             return
         }
 
@@ -53,6 +57,11 @@ final class StatusBarController: NSObject, NSApplicationDelegate {
         contentController = controller
         popover.contentViewController = controller
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+        if !NSApp.isActive {
+            NSApp.activate(ignoringOtherApps: false)
+        }
+        popover.contentViewController?.view.window?.makeKey()
+        installOutsideClickMonitors()
     }
 
     private func configureStatusItem() {
@@ -67,7 +76,22 @@ final class StatusBarController: NSObject, NSApplicationDelegate {
 
         popover.behavior = .transient
         popover.animates = !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        popover.delegate = self
         updateStatusSummary()
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        removeOutsideClickMonitors()
+    }
+
+    func popoverWillClose(_ notification: Notification) {
+        isClosingPopover = true
+    }
+
+    func popoverDidClose(_ notification: Notification) {
+        isClosingPopover = false
+        contentController = nil
+        removeOutsideClickMonitors()
     }
 
     private func bindStatusSummary() {
@@ -100,6 +124,53 @@ final class StatusBarController: NSObject, NSApplicationDelegate {
             ?? NSScreen.main?.visibleFrame.height
             ?? 800
         return max(240, visibleHeight - 64)
+    }
+
+    private func installOutsideClickMonitors() {
+        guard localMouseMonitor == nil, globalMouseMonitor == nil else { return }
+        let mask: NSEvent.EventTypeMask = [.leftMouseDown, .rightMouseDown, .otherMouseDown]
+
+        localMouseMonitor = NSEvent.addLocalMonitorForEvents(matching: mask) { [weak self] event in
+            guard let self, !self.isEventInPopoverHierarchy(event) else { return event }
+            self.closePopoverForOutsideClick()
+            return event
+        }
+        globalMouseMonitor = NSEvent.addGlobalMonitorForEvents(matching: mask) { [weak self] _ in
+            Task { @MainActor in
+                self?.closePopoverForOutsideClick()
+            }
+        }
+    }
+
+    private func removeOutsideClickMonitors() {
+        if let localMouseMonitor {
+            NSEvent.removeMonitor(localMouseMonitor)
+            self.localMouseMonitor = nil
+        }
+        if let globalMouseMonitor {
+            NSEvent.removeMonitor(globalMouseMonitor)
+            self.globalMouseMonitor = nil
+        }
+    }
+
+    private func isEventInPopoverHierarchy(_ event: NSEvent) -> Bool {
+        guard let window = event.window else { return false }
+        if window === statusItem?.button?.window { return true }
+
+        let popoverWindow = popover.contentViewController?.view.window
+        var candidate: NSWindow? = window
+        while let current = candidate {
+            if current === popoverWindow { return true }
+            candidate = current.sheetParent ?? current.parent
+        }
+        return false
+    }
+
+    private func closePopoverForOutsideClick() {
+        guard popover.isShown, !isClosingPopover else { return }
+        guard popover.contentViewController?.view.window?.sheets.isEmpty ?? true else { return }
+        popover.animates = !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        popover.performClose(nil)
     }
 
     private func screenshotURL() -> URL? {
