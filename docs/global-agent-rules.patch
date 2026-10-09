@@ -1,0 +1,14 @@
+diff --git a/AGENTS.md b/AGENTS.md
+--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -48,6 +48,10 @@ Every delegated task must be bounded and independently executable. Include, as
+ 
+ Workers must not change architecture, expand scope, add dependencies, alter public contracts, or perform destructive actions without escalation. Investigators, advisors, challengers, and reviewers remain read-only; assign a Worker for any required change.
+ 
++## Module organization
++
++Prefer responsibility-first directories as a codebase grows: keep UI composition, reusable components, domain logic, and data I/O separate when they have distinct reasons to change. Split a growing multipurpose file into cohesive feature or responsibility modules when it improves inspection and testing. Do not use arbitrary line limits or create one-file-per-tiny-helper structures.
++
+ ## Parallel work
+ 
+ Parallelize independent investigation, separate backend/frontend work after contracts are stable, independent tests, documentation, and independent advisor reviews. Do not parallelize edits to the same files, schema or migration chain, unresolved contracts, or tightly coupled modules. Coordination cost must be lower than the expected benefit.
