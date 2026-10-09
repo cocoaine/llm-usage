@@ -8,6 +8,11 @@ if [[ -d /Applications/Xcode.app/Contents/Developer ]]; then
 fi
 export CLANG_MODULE_CACHE_PATH="${TMPDIR:-/tmp}/llmusage-clang-cache"
 export SWIFT_MODULECACHE_PATH="${TMPDIR:-/tmp}/llmusage-swift-module-cache"
+icon_source="$PWD/Resources/AppIcon.icns"
+if [[ ! -s "$icon_source" ]]; then
+    print -u2 "error: missing app icon at $icon_source"
+    exit 1
+fi
 # The sandboxed environment can deny dsymutil's output creation. This first
 # runnable, ad-hoc-signed build does not ship debug symbols.
 swift build -c release --disable-sandbox --cache-path "${TMPDIR:-/tmp}/llmusage-swift-cache" -debug-info-format none
@@ -17,8 +22,8 @@ mkdir -p "$app_path/Contents/MacOS" "$app_path/Contents/Resources"
 cp "$binary_dir/LLMUsage" "$app_path/Contents/MacOS/LLMUsage"
 cp Resources/Info.plist "$app_path/Contents/Info.plist"
 printf 'APPL????' > "$app_path/Contents/PkgInfo"
-if [[ -f Resources/AppIcon.icns ]]; then
-    cp Resources/AppIcon.icns "$app_path/Contents/Resources/AppIcon.icns"
-fi
+cp "$icon_source" "$app_path/Contents/Resources/AppIcon.icns"
 codesign --force --sign - "$app_path"
+# Refresh the bundle directory timestamp so Finder notices a rebuilt icon.
+touch "$app_path"
 print "Built: $app_path"
