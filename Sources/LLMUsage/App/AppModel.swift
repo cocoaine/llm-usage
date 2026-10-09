@@ -59,8 +59,8 @@ final class AppModel: ObservableObject {
         return "\(provider.rawValue) \(Int(window.remainingPercent.rounded()))%\(stale ? "~" : "")"
     }
 
-    /// The menu-bar label has its own lifetime, so it starts the app-wide loop.
-    /// Opening and closing the panel cannot pause quota refreshes.
+    /// The status-bar controller starts the app-wide loop at launch.
+    /// Opening and closing the popover cannot pause quota refreshes.
     func startRefreshLoop() {
         guard refreshLoop == nil else { return }
         refreshLoop = Task { [weak self] in

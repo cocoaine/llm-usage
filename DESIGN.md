@@ -10,3 +10,4 @@ Native macOS utility panel, Operate mode. User confirmed concise platform stylin
 - Native segmented control chooses today or recent seven calendar days. Model totals sort descending.
 - Controls: refresh, Claude connection instructions, quit. Keyboard and VoiceOver labels describe the action.
 - Empty, stale, failed and loading states remain explicit. Missing quota is an em dash.
+- The status item opens an AppKit transient popover anchored below the menu bar. Its native arrow and system appearance/disappearance animation provide the panel's visual connection to the status item; Reduce Motion disables that animation.
