@@ -49,7 +49,14 @@ enum StatusBarSummary {
                 width: iconSize,
                 height: iconSize
             )
-            icon.draw(in: iconRect, from: .zero, operation: .sourceOver, fraction: 1)
+            icon.draw(
+                in: iconRect,
+                from: .zero,
+                operation: .sourceOver,
+                fraction: 1,
+                respectFlipped: true,
+                hints: nil
+            )
             origin += iconSize + iconSpacing
         }
         drawText(item.text, at: &origin)
