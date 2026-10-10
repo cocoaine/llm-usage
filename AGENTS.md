@@ -2,7 +2,7 @@
 
 ## Product contract
 
-This is a macOS 14+ SwiftUI menu-bar utility built with Swift Package Manager. The display name is **LLM Usage** and the executable/package name is `LLMUsage`. The status-bar label must spell out `Codex` and `Claude`; do not replace them with initials.
+This is a macOS 14+ SwiftUI menu-bar utility built with Swift Package Manager. The display name is **LLM Usage** and the executable/package name is `LLMUsage`. The status-bar label uses the Codex and Claude provider icons with their remaining percentages; when an icon resource is unavailable it falls back to the full provider name. Tooltips, accessibility labels, and the popover must spell out `Codex` and `Claude`.
 
 The compact native panel shows provider quota remaining and reset times first, followed by this Mac's local token totals for today or the latest seven local calendar days and model totals. Quota is account data; token activity is local-log data. Never derive quota remaining, reset time, cost, billing, or subscription entitlement from token totals. Unknown data is an em dash, never zero.
 

@@ -113,8 +113,13 @@ final class StatusBarController: NSObject, NSApplicationDelegate, NSPopoverDeleg
     }
 
     private func updateStatusSummary() {
+        let codex = model.remainingSummary(.codex)
+        let claude = model.remainingSummary(.claude)
         let summary = model.menuSummary(.codex) + " · " + model.menuSummary(.claude)
-        statusItem?.button?.title = summary
+        statusItem?.button?.attributedTitle = NSAttributedString(string: "")
+        statusItem?.button?.title = ""
+        statusItem?.button?.imagePosition = .imageOnly
+        statusItem?.button?.image = StatusBarSummary.image(codex: codex, claude: claude)
         statusItem?.button?.toolTip = "LLM Usage\n\(summary)"
         statusItem?.button?.setAccessibilityLabel("LLM Usage, \(summary)")
     }

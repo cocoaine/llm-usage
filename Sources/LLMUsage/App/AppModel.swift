@@ -52,11 +52,15 @@ final class AppModel: ObservableObject {
         window.resetsAt.map { $0 > Date() } ?? true
     }
 
-    func menuSummary(_ provider: Provider) -> String {
+    func remainingSummary(_ provider: Provider) -> String {
         guard let snapshot = quotas[provider], let window = snapshot.windows.first,
-              validWindow(window) else { return "\(provider.rawValue) —" }
+              validWindow(window) else { return "—" }
         let stale = Date().timeIntervalSince(snapshot.observedAt) > 300
-        return "\(provider.rawValue) \(Int(window.remainingPercent.rounded()))%\(stale ? "~" : "")"
+        return "\(Int(window.remainingPercent.rounded()))%\(stale ? "~" : "")"
+    }
+
+    func menuSummary(_ provider: Provider) -> String {
+        "\(provider.rawValue) \(remainingSummary(provider))"
     }
 
     /// The status-bar controller starts the app-wide loop at launch.
